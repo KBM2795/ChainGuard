@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChainGuard — Decentralized API Key Manager
+
+A secure, decentralized API key management dApp built on Ethereum (Sepolia Testnet). Generate cryptographic keys locally in your browser, register their hashes on-chain, and verify ownership through blockchain-gated API routes.
+
+## Tech Stack
+
+| Layer               | Technology                |
+| ------------------- | ------------------------- |
+| Framework           | Next.js 16 (App Router)   |
+| Language            | TypeScript                |
+| Styling             | Tailwind CSS v4           |
+| Wallet              | RainbowKit v2 + Wagmi v2  |
+| Blockchain          | Solidity 0.8.20 (Sepolia) |
+| Backend Chain Lib   | Ethers.js v6              |
+| Frontend Chain Lib  | Viem v2                   |
+| Contract Deployment | Remix IDE                 |
+
+## Architecture
+
+```
+Browser (Web Crypto API)         Backend (Next.js API Routes)         Blockchain (Sepolia)
+┌─────────────────────┐         ┌──────────────────────────┐         ┌─────────────────────┐
+│ Generate 256-bit key│         │ /api/register            │         │ APIKeyRegistry.sol  │
+│ SHA-256 hash locally│ ──────► │ Relayer pays gas         │ ──────► │ registerKeyHash()   │
+│ Show key ONCE       │         │ /api/protected           │         │ verifyOwner()       │
+│                     │         │ Hash + verify on-chain   │ ◄────── │ revokeKey()         │
+└─────────────────────┘         └──────────────────────────┘         └─────────────────────┘
+```
+
+## Smart Contract
+
+**Address:** [`0x950AACf33014e9924191f0deD6CEdbb515D347B2`](https://sepolia.etherscan.io/address/0x950AACf33014e9924191f0deD6CEdbb515D347B2)
+
+| Function                            | Type  | Description               |
+| ----------------------------------- | ----- | ------------------------- |
+| `registerKeyHash(bytes32, address)` | Write | Register a hashed API key |
+| `revokeKey(bytes32, address)`       | Write | Permanently revoke a key  |
+| `verifyOwner(bytes32, address)`     | Read  | Check ownership (gasless) |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- MetaMask with Sepolia ETH
+- Infura/Alchemy RPC URL
+
+### Setup
+
+```bash
+git clone <your-repo-url>
+cd api-key-manager
+npm install
+```
+
+Create `.env.local`:
+
+```env
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_KEY
+PRIVATE_KEY=YOUR_RELAYER_WALLET_PRIVATE_KEY
+NEXT_PUBLIC_CONTRACT_ADDRESS=0x950AACf33014e9924191f0deD6CEdbb515D347B2
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=YOUR_WALLETCONNECT_PROJECT_ID
+```
+
+Run:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Register a Key Hash
 
-## Learn More
+```bash
+curl -X POST http://localhost:3000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"keyHash": "0xYOUR_HASH", "owner": "0xYOUR_WALLET"}'
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Verify a Key (Protected Route)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+curl -X GET http://localhost:3000/api/protected \
+  -H "Authorization: Bearer YOUR_RAW_API_KEY" \
+  -H "X-Wallet-Address: 0xYOUR_WALLET"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Check Ownership
 
-## Deploy on Vercel
+```bash
+curl -X POST http://localhost:3000/api/verify \
+  -H "Content-Type: application/json" \
+  -d '{"keyHash": "0xYOUR_HASH", "owner": "0xYOUR_WALLET"}'
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Revoke a Key
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+curl -X POST http://localhost:3000/api/revoke \
+  -H "Content-Type: application/json" \
+  -d '{"keyHash": "0xYOUR_HASH", "owner": "0xYOUR_WALLET"}'
+```
+
+## Deploy to Vercel
+
+1. Push to GitHub
+2. Import in [Vercel](https://vercel.com)
+3. Add the 4 environment variables from `.env.local`
+4. Deploy — Vercel auto-detects Next.js
+
+## Security Notes
+
+- Raw API keys are generated client-side and **never sent to the server**
+- Only SHA-256 hashes are stored on-chain
+- The relayer wallet (`PRIVATE_KEY`) pays gas for registration/revocation
+- Verification is gasless (read-only contract call)
+- Keys are permanently tied to the registering wallet address
+
+## License
+
+MIT
