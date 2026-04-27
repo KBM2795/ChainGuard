@@ -10,7 +10,7 @@ export function Sidebar() {
     const navItems = [
         { name: "Dashboard", href: "/dashboard", icon: <Home className="w-5 h-5" /> },
         { name: "API Keys", href: "/dashboard", icon: <Key className="w-5 h-5" /> },
-        { name: "Docs", href: "#", icon: <BookOpen className="w-5 h-5" /> },
+        { name: "Docs", href: "/dashboard/docs", icon: <BookOpen className="w-5 h-5" /> },
         { name: "Help", href: "#", icon: <HelpCircle className="w-5 h-5" /> },
         { name: "Settings", href: "#", icon: <Settings className="w-5 h-5" /> },
     ];

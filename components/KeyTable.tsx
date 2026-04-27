@@ -5,6 +5,7 @@ import { usePublicClient } from "wagmi";
 import { CONTRACT_ADDRESS } from "@/lib/contract";
 import { Copy, Trash2 } from "lucide-react";
 import { parseAbiItem } from "viem";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export function KeyTable({ address, refreshKey }: { address?: string; refreshKey?: number }) {
     const [loading, setLoading] = useState(true);
@@ -87,6 +88,16 @@ export function KeyTable({ address, refreshKey }: { address?: string; refreshKey
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
     };
+
+    if (!address) {
+        return (
+            <div className="flex flex-col items-center justify-center p-16 gap-4">
+                <h2 className="text-xl font-semibold text-white/90">Connect your wallet</h2>
+                <p className="text-sm text-white/50 mb-4">Please connect your wallet to manage your API keys.</p>
+                <ConnectButton showBalance={false} />
+            </div>
+        );
+    }
 
     if (loading) {
         return <div className="p-8 text-center text-white/40 animate-pulse">Scanning blockchain for your keys...</div>;

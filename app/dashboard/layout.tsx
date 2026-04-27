@@ -8,14 +8,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const { isConnected, address } = useAccount();
     const { data: ensName } = useEnsName({ address });
 
-    if (!isConnected) {
-        return (
-            <main className="min-h-screen flex flex-col items-center justify-center bg-[#000000] gap-6">
-                <h2 className="text-xl font-bold text-white">Connect your wallet to continue</h2>
-                <ConnectButton showBalance={false} />
-            </main>
-        );
-    }
+    // Removed strict isConnected constraint to allow users to view the dashboard UI without a wallet
 
     const displayName = ensName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "");
 
